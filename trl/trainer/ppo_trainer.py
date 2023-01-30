@@ -431,8 +431,13 @@ class PPOTrainer(BaseTrainer):
         logprobs, ref_logprobs, values = self.batched_forward_pass(queries, responses)
         timing["time/ppo/forward_pass"] = time.time() - t
 
+        print(f"<step> logprobs: {logprobs[0].shape}")
+        print(f"<step> ref_logprobs: {ref_logprobs[0].shape}")
+        print(f"<step> values: {values[0].shape, values[0]}")
+
         t = time.time()
         rewards, non_score_reward = self.compute_rewards(scores, logprobs, ref_logprobs)
+
         timing["time/ppo/compute_rewards"] = time.time() - t
 
         t = time.time()
@@ -651,6 +656,11 @@ class PPOTrainer(BaseTrainer):
             reward = non_score_reward.clone()
             reward[-1] += score
             rewards.append(reward)
+
+        print(f"<compute_rewards> kl_ctl: {self.kl_ctl.value}")
+        print(f"<compute_rewards> rewards: {rewards[0].shape, rewards[0]}")
+        print(f"<compute_rewards> non_score_rewards: {non_score_rewards[0].shape, non_score_rewards[0]}")
+
         return rewards, non_score_rewards
 
     def loss(
@@ -688,11 +698,15 @@ class PPOTrainer(BaseTrainer):
             delta = rewards[:, t] + self.config.gamma * nextvalues - values[:, t]
             lastgaelam = delta + self.config.gamma * self.config.lam * lastgaelam
             advantages_reversed.append(lastgaelam)
+        # print(f"<loss> advantages_reversed: {len(advantages_reversed), advantages_reversed[0].shape}")  # response_len,1
         advantages = torch.stack(advantages_reversed[::-1]).transpose(0, 1)
+        # print(f"<loss> raw_advantages: {advantages.shape}")  # 1, response_len
 
         returns = advantages + values
         advantages = whiten(advantages)
         advantages = advantages.detach()
+
+        # print(f"<loss> advantages: {advantages.shape}")  # 1, response_len
 
         input_kwargs = {
             "input_ids": model_input,
