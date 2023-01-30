@@ -35,7 +35,7 @@ This process is illustrated in the sketch below:
 
 To develop with this forked repo:
 ```bash
-pip install -e git+repositoryurl@branchname
+pip install -e git+https://github.com/tengxiaoliu/trl.git@tx
 ```
 
 Install the library with pip:
