@@ -32,6 +32,12 @@ This process is illustrated in the sketch below:
 ## Installation
 
 ### Python package
+
+To develop with this forked repo:
+```bash
+pip install -e git+repositoryurl@branchname
+```
+
 Install the library with pip:
 ```bash
 pip install trl
